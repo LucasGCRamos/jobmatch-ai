@@ -1,0 +1,1 @@
+Como informado no readme do repositório, crie as pastas de processed e raw dentro da pasta data
