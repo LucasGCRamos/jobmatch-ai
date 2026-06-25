@@ -101,3 +101,49 @@ def resolver_pasta_dataset(
 def carregar_csv(caminho: Path | str, **kwargs) -> pd.DataFrame:
     """Carrega um CSV com configuração padrão segura para bases grandes."""
     return pd.read_csv(caminho, low_memory=False, **kwargs)
+
+def baixar_dataset_huggingface(dataset_slug: str, pasta_destino: Path) -> Path:
+    """Baixa um dataset da Hugging Face e salva como CSV na pasta destino."""
+    try:
+        from datasets import load_dataset
+    except ImportError as erro:
+        raise ImportError(
+            "A biblioteca datasets não está instalada. "
+            "Instale com: pip install datasets"
+        ) from erro
+
+    print(f"[INFO] Baixando {dataset_slug} via Hugging Face...")
+    dataset = load_dataset(dataset_slug)
+    
+    # Concatena os splits para manter a integridade local do arquivo bruto
+    df_train = dataset["train"].to_pandas()
+    df_test = dataset["test"].to_pandas()
+    df_train["split"] = "train"
+    df_test["split"] = "test"
+    df_completo = pd.concat([df_train, df_test], ignore_index=True)
+    
+    # Garante a criação da pasta e define o caminho do arquivo final
+    pasta_destino.mkdir(parents=True, exist_ok=True)
+    arquivo_final = pasta_destino / "resume_jd_match.csv"
+    
+    df_completo.to_csv(arquivo_final, index=False)
+    print(f"[SUCESSO] Dataset salvo localmente em: {arquivo_final}")
+    return arquivo_final
+
+
+def carregar_resume_jd_match(project_root: Optional[Path | str] = None) -> pd.DataFrame:
+    """
+    Carrega o dataset Resume-JD-Match.
+    
+    Tenta localizar localmente em `data/raw/resume-jd-match/resume_jd_match.csv`.
+    Caso não exista, faz o download automático usando a API da Hugging Face.
+    """
+    pastas = garantir_pastas_projeto(project_root)
+    pasta_local = pastas["raw"] / "resume-jd-match"
+    arquivo_local = pasta_local / "resume_jd_match.csv"
+    
+    # Se o arquivo não existe localmente, aciona o download
+    if not arquivo_local.exists():
+        baixar_dataset_huggingface("facehuggerapoorv/resume-jd-match", pasta_local)
+        
+    return carregar_csv(arquivo_local)
