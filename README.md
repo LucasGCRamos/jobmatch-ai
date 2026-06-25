@@ -390,8 +390,18 @@ Para recomendação:
 
 ## Como treinar e avaliar os modelos
 
-O dataset Resume-JD-Match é baixado automaticamente do Hugging Face na primeira
-execução. Para treinar, comparar os modelos e salvar o melhor:
+Primeiro, monte a base de vagas. O comando abaixo baixa os datasets do Kaggle
+(LinkedIn Job Postings e Job Skill Set), compõe a base enriquecida e gera
+`data/processed/vagas_enriquecidas_lite.parquet` (além dos CSVs e da amostra
+versionada em `data/sample/`):
+
+```bash
+python -m src.compose_datasets
+```
+
+Em seguida, treine e compare os modelos. O dataset Resume-JD-Match é baixado
+automaticamente do Hugging Face na primeira execução. Para treinar, comparar os
+modelos e salvar o melhor:
 
 ```bash
 python -m src.training
