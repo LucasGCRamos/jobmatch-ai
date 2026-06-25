@@ -830,3 +830,19 @@ def gerar_base_vagas_enriquecidas(
     relatorio["validacao_base_lite"] = validar_base_lite(df_lite)
 
     return df_lite, relatorio
+
+if __name__ == "__main__":
+    print("--- COMPONDO A BASE DE VAGAS ---")
+    df_lite, relatorio = gerar_base_vagas_enriquecidas()
+
+    print("\n=== BASE DE VAGAS GERADA ===")
+    print(f"[INFO] Linhas na base lite: {len(df_lite)}")
+    for chave in (
+        "caminho_base_final",
+        "caminho_base_tratada",
+        "caminho_base_lite_csv",
+        "caminho_base_lite_parquet",
+        "caminho_amostra",
+    ):
+        if chave in relatorio:
+            print(f"  {chave}: {relatorio[chave]}")
