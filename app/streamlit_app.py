@@ -7,13 +7,10 @@ import os
 # Permite a importação da pasta src/
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-try:
-    from src.model_predict import prever_aderencia
-    from src.recommendation import recomendar_top_5
-    from src.skills import comparar_skills
-    MODULOS_CARREGADOS = True
-except ImportError:
-    MODULOS_CARREGADOS = False
+from src.model_predict import predict_fit
+from src.recommendation import recomendar_vagas
+from src.skills import comparar_skills
+MODULOS_CARREGADOS = True
 
 st.set_page_config(page_title="JobMatch AI", page_icon="🎯", layout="centered")
 st.title("JobMatch AI 🎯")
@@ -37,16 +34,23 @@ if st.button("Executar Análise de Compatibilidade", type="primary"):
         with st.spinner("Analisando perfil contra a base de vagas e extraindo skills..."):
             
             if MODULOS_CARREGADOS:
-                top_vagas = recomendar_top_5(curriculo_usuario)
+                df_vagas = pd.read_csv('data/sample/vagas_exemplo.csv')
+                top_vagas = recomendar_vagas(curriculo_usuario, df_vagas)
+                
                 vaga_principal = top_vagas.iloc[0]
-                
-                resultado_modelo = prever_aderencia(curriculo_usuario, vaga_principal['texto_vaga_completo'])
-                score = resultado_modelo['score']
-                classificacao = resultado_modelo['label'] 
-                
-                skills = comparar_skills(curriculo_usuario, vaga_principal['texto_vaga_completo'])
-                skills_comp = skills['compativeis']
-                skills_falt = skills['faltantes']
+                id_da_vaga = vaga_principal['job_id']
+
+                # 1. Vai na base original e "pesca" o texto completo usando o ID da vaga
+                texto_completo = df_vagas[df_vagas['job_id'] == id_da_vaga]['texto_vaga_completo'].iloc[0]
+
+                # 2. Envia o texto completo recuperado para os modelos
+                resultado_modelo = predict_fit(curriculo_usuario, texto_completo)
+                score = resultado_modelo['score_confianca']
+                classificacao = resultado_modelo['status'] 
+
+                skills = comparar_skills(curriculo_usuario, texto_completo)
+                skills_comp = skills['skills_compativeis']
+                skills_falt = skills['skills_faltantes']
                 
             else:
                 time.sleep(2) 
@@ -85,7 +89,7 @@ if st.button("Executar Análise de Compatibilidade", type="primary"):
         with st.expander("🏆 Ranking Top-5 Vagas Recomendadas"):
             if MODULOS_CARREGADOS:
                 for idx, row in top_vagas.iterrows():
-                    st.write(f"**{idx + 1}. {row['titulo']}** na {row['empresa']}")
+                    st.write(f"**{idx + 1}. {row['title']}** na {row['company_name']}")
             else:
                 for vaga in top_vagas_mock:
                     st.write(f"- {vaga}")
