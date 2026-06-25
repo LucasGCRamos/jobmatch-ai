@@ -136,8 +136,16 @@ pip install -r requirements.txt
 
 ```
 
-**3. Treinamento do Modelo (Crucial):**
-Como os arquivos binários pesados não são versionados, **é obrigatório** rodar o script de treinamento primeiro para gerar os artefatos de IA localmente. O comando abaixo usa a raiz do projeto como módulo:
+**3. Preparação dos Dados e Treinamento do Modelo (Crucial):**
+Como os arquivos binários pesados não são versionados, **é obrigatório** compor os datasets e rodar o script de treinamento primeiro para gerar os artefatos de IA localmente. Os comandos abaixo usam a raiz do projeto como módulo:
+
+Primeiro, unifique e prepare os datasets:
+```powershell
+python -m src.compose_datasets
+
+```
+
+Em seguida, execute o treinamento:
 
 ```powershell
 python -m src.training
