@@ -1,353 +1,174 @@
-# JobMatch AI
+# JobMatch AI 🎯
 
-Projeto E2E de Machine Learning para recomendação inteligente de vagas e análise de compatibilidade entre currículos e oportunidades.
+Projeto E2E de Machine Learning para recomendação inteligente de vagas e análise de compatibilidade entre currículos e oportunidades profissionais.
 
-## Descrição do Projeto
+---
 
-O **JobMatch AI** é uma aplicação de Machine Learning voltada para analisar a compatibilidade entre currículos e vagas de emprego.
+## 📌 Descrição do Projeto
+O JobMatch AI é uma aplicação de Machine Learning voltada para analisar a compatibilidade entre currículos e vagas de emprego. A proposta do projeto é permitir que um usuário informe seu perfil profissional ou currículo em texto livre e receba como resposta:
 
-A proposta do projeto é permitir que um usuário informe seu perfil profissional ou currículo e receba como resposta:
+* Score de aderência probabilística entre currículo e vaga;
+* Classificação automática de perfil como Fit ou No Fit;
+* Ranking com as Top-5 vagas mais compatíveis;
+* Lista de skills compatíveis (encontradas no perfil);
+* Lista de skills faltantes (exigidas pela vaga, mas ausentes no perfil);
+* Sugestão de desenvolvimento profissional;
+* Estimativa de faixa salarial (caso existam dados suficientes).
 
-* score de aderência entre currículo e vaga;
-* classificação automática como **Fit** ou **No Fit**;
-* ranking com as **Top-5 vagas** mais compatíveis;
-* lista de skills compatíveis;
-* lista de skills faltantes;
-* sugestão de desenvolvimento profissional;
-* estimativa de faixa salarial, caso existam dados suficientes.
+O projeto integra técnicas de Processamento de Linguagem Natural (NLP), classificação, similaridade textual, sistemas de recomendação e, opcionalmente, regressão para estimativa salarial.
 
-O projeto utiliza técnicas de NLP, classificação, similaridade textual, recomendação e, opcionalmente, regressão para estimativa salarial.
+---
 
-## Objetivo
+## 🎯 Objetivo
+Desenvolver uma solução E2E (End-to-End) de Machine Learning capaz de comparar currículos e vagas de emprego, reduzindo a assimetria de informações no mercado de trabalho ao indicar oportunidades perfeitamente alinhadas ao perfil do candidato.
 
-Desenvolver uma solução E2E de Machine Learning capaz de comparar currículos e vagas de emprego, indicando o nível de compatibilidade entre eles e recomendando oportunidades mais alinhadas ao perfil do candidato.
+---
 
-## Motivação
+## 💡 Motivação
+Muitos candidatos se candidatam a vagas sem saber exatamente se possuem aderência aos requisitos solicitados. Ao mesmo tempo, empresas recebem muitos currículos desalinhados com as vagas disponíveis. O JobMatch AI busca resolver esse problema ao oferecer uma análise matemática e objetiva da compatibilidade entre o candidato e a oportunidade.
 
-Muitos candidatos se candidatam a vagas sem saber exatamente se possuem aderência aos requisitos solicitados. Ao mesmo tempo, empresas recebem muitos currículos desalinhados com as vagas disponíveis.
+---
 
-O **JobMatch AI** busca reduzir esse problema ao oferecer uma análise mais objetiva da compatibilidade entre candidato e oportunidade.
+## 🧠 Arquitetura e Pipeline de Dados
+Para que qualquer desenvolvedor ou avaliador entenda o fluxo de dados sob o capô, a nossa aplicação funciona na seguinte esteira de processamento:
 
-## Estrutura do Projeto
+1. **Processamento (NLP):** O currículo do usuário é recebido pela interface em Streamlit e vetorizado usando TF-IDF (transformando texto humano em representação matemática).
+2. **Motor de Recomendação:** O vetor do candidato é comparado com a base de vagas utilizando Similaridade por Cosseno. O sistema devolve as 5 vagas mais aderentes.
+3. **Cruzamento de Texto Completo:** O backend realiza uma busca inteligente pelo `job_id` da vaga principal na base original para resgatar o `texto_vaga_completo`.
+4. **Classificação Fit/No Fit:** O texto da vaga e do currículo passam pelo nosso modelo classificador treinado, gerando o status binário e o Score de Confiança.
+5. **Extração de Habilidades:** O algoritmo cruza as exigências da vaga com a experiência do candidato para mapear granularmente as compatibilidades e lacunas (`skills_compativeis` e `skills_faltantes`).
+
+---
+
+## 📂 Estrutura do Projeto
 
 ```text
 jobmatch-ai/
-│
 ├── app/
 │   └── streamlit_app.py
-│
 ├── data/
 │   ├── raw/
 │   ├── processed/
 │   └── README.md
-│
 ├── models/
-│
 ├── notebooks/
 │   ├── 01_eda_datasets.ipynb
-│   └── 02_modelo_baseline.ipynb
-│
+│   ├── 02_modelo_baseline.ipynb
+│   ├── 03_eda_job_skill_set.ipynb
+│   ├── 04_composicao_datasets.ipynb
+│   ├── 05_modelo_baseline_fit_no_fit.ipynb
+│   └── 05_recomendacao_e_skills.ipynb
 ├── reports/
 │   └── proposta_projeto.md
-│
 ├── src/
+│   ├── compose_datasets.py
+│   ├── data_loader.py
+│   ├── model_predict.py
 │   ├── preprocessing.py
-│   ├── training.py
 │   ├── recommendation.py
-│   └── skills.py
-│
+│   ├── skills.py
+│   └── training.py
 ├── .gitignore
 ├── README.md
 └── requirements.txt
+
 ```
 
-## Por que a pasta `data/` existe se os dados não sobem para o GitHub?
+### Por que a pasta `data/` existe se os dados não sobem para o GitHub?
 
-A pasta `data/` serve para organizar os datasets localmente durante o desenvolvimento do projeto.
-
-Os arquivos de dados normalmente são grandes e podem ultrapassar o limite recomendado para repositórios GitHub. Por isso, eles devem ser baixados manualmente ou por comandos e armazenados apenas na máquina de quem estiver rodando o projeto.
-
-A estrutura recomendada é:
-
-```text
-data/
-├── raw/
-│   ├── linkedin-job-postings/
-│   ├── resume-jd-match/
-│   └── job-skill-set/
-│
-└── processed/
-    ├── vagas_tratadas.csv
-    ├── pares_curriculo_vaga.csv
-    └── skills_tratadas.csv
-```
+A pasta `data/` serve para organizar os datasets localmente durante o desenvolvimento. Os arquivos de dados normalmente são muito grandes e ultrapassam os limites recomendados para repositórios GitHub. Por isso, eles devem ser baixados manualmente e armazenados apenas na máquina de quem estiver executando o projeto.
 
 * `data/raw/`: armazena os dados originais, sem tratamento.
 * `data/processed/`: armazena os dados tratados e prontos para modelagem.
-* `data/README.md`: explica como baixar e organizar os datasets.
 
-Os arquivos dentro de `data/raw/` e `data/processed/` não devem ser enviados para o GitHub.
+*Nota: Os arquivos dentro de `data/raw/` e `data/processed/` estão no `.gitignore` e não devem ser enviados para a nuvem.*
 
-## Datasets Utilizados
+---
 
-Este projeto prevê o uso de três bases principais:
+## 🗄️ Datasets Utilizados
 
-### 1. [LinkedIn Job Postings 2023-2024](https://www.kaggle.com/datasets/arshkon/linkedin-job-postings)
+O motor do JobMatch AI é alimentado por três bases principais:
 
-Base com vagas reais do LinkedIn, contendo informações como título da vaga, descrição, empresa, localização, salário, tipo de trabalho e skills associadas.
+1. **LinkedIn Job Postings 2023-2024:** Base com vagas reais, contendo título, descrição, empresa, localização e tipo de trabalho.
+2. **Resume-JD-Match:** Base rotulada com pares de currículos e descrições de vagas (Fit / No Fit) para o treinamento do classificador.
+3. **Job Skill Set Dataset:** Dicionário massivo com cargos, descrições e conjuntos de habilidades associadas.
 
-Uso no projeto:
+### Como baixar os dados (Pré-requisito)
 
-* criar base de vagas;
-* gerar ranking de recomendações;
-* extrair descrições das vagas;
-* estimar faixa salarial, caso os dados estejam disponíveis.
-
-### 2. [Resume-JD-Match](https://huggingface.co/datasets/facehuggerapoorv/resume-jd-match)
-
-Base com pares de currículos e descrições de vagas, rotulados como **Fit** ou **No Fit**.
-
-Uso no projeto:
-
-* treinar o modelo de classificação;
-* avaliar se um currículo combina ou não com uma vaga;
-* construir o modelo baseline de NLP.
-
-### 3. [Job Skill Set Dataset](https://www.kaggle.com/datasets/batuhanmutlu/job-skill-set)
-
-Base com cargos, descrições e conjuntos de habilidades associadas.
-
-Uso no projeto:
-
-* identificar skills exigidas por cargo;
-* comparar skills do candidato com skills da vaga;
-* gerar lista de habilidades compatíveis e faltantes.
-
-## Como baixar os dados
-
-Os datasets não estão incluídos diretamente neste repositório. Para executar o projeto, é necessário baixá-los separadamente.
-
-### Opção 1 — Download manual
-
-Acesse as páginas dos datasets:
-
-* Kaggle — LinkedIn Job Postings 2023-2024
-* Hugging Face — Resume-JD-Match
-* Kaggle — Job Skill Set Dataset
-
-Depois de baixar os arquivos, organize-os assim:
-
-```text
-data/raw/
-├── linkedin-job-postings/
-├── resume-jd-match/
-└── job-skill-set/
-```
-
-### Opção 2 — Download usando Kaggle API
-
-Para baixar datasets do Kaggle pelo terminal, primeiro instale a biblioteca:
+Os datasets não estão incluídos diretamente neste repositório. Para executar o projeto, faça o download via Kaggle API e Hugging Face:
 
 ```bash
-pip install kaggle
-```
-
-Depois, configure sua chave da API do Kaggle.
-
-No Kaggle:
-
-1. Acesse sua conta.
-2. Vá em `Settings`.
-3. Procure a seção `API`.
-4. Clique em `Create New Token`.
-5. O arquivo `kaggle.json` será baixado.
-
-No Linux, coloque o arquivo em:
-
-```bash
-mkdir -p ~/.kaggle
-mv kaggle.json ~/.kaggle/
-chmod 600 ~/.kaggle/kaggle.json
-```
-
-Depois, execute os comandos:
-
-```bash
+pip install kaggle datasets
 kaggle datasets download -d arshkon/linkedin-job-postings -p data/raw/linkedin-job-postings --unzip
-```
-
-```bash
 kaggle datasets download -d batuhanmutlu/job-skill-set -p data/raw/job-skill-set --unzip
+
 ```
 
-### Opção 3 — Download usando Hugging Face
+*O dataset `Resume-JD-Match` poderá ser carregado via script em Python usando a biblioteca da Hugging Face e salvo localmente em `data/raw/resume-jd-match/`.*
 
-Para carregar o dataset Resume-JD-Match, instale a biblioteca `datasets`:
+---
 
-```bash
-pip install datasets
-```
+## 🚀 Como Configurar e Executar o Projeto Localmente
 
-O dataset poderá ser carregado em Python usando a biblioteca da Hugging Face e depois salvo localmente em `data/raw/resume-jd-match/`.
+Siga o passo a passo abaixo para levantar a infraestrutura, treinar o modelo e rodar a aplicação integrada na sua máquina:
 
-Exemplo de organização esperada:
+**1. Configuração do Ambiente Virtual:**
+Crie e ative um ambiente isolado para não gerar conflitos de bibliotecas.
 
-```text
-data/raw/resume-jd-match/
-└── resume_jd_match.parquet
-```
+```powershell
+python -m venv .venv
 
-## Ambiente Virtual
+# No Windows (PowerShell):
+Set-ExecutionPolicy Unrestricted -Scope Process
+.\.venv\Scripts\Activate.ps1
 
-Crie um ambiente virtual:
-
-```bash
-python3 -m venv .venv
-```
-
-Ative o ambiente:
-
-```bash
+# No Linux/Mac:
 source .venv/bin/activate
+
 ```
 
-Atualize o `pip`:
+**2. Instalação de Dependências:**
+Com o `(.venv)` ativo, instale os pacotes necessários:
 
-```bash
+```powershell
 pip install --upgrade pip
-```
-
-Instale as dependências:
-
-```bash
 pip install -r requirements.txt
+
 ```
 
-## Bibliotecas Previstas
+**3. Treinamento do Modelo (Crucial):**
+Como os arquivos binários pesados não são versionados, **é obrigatório** rodar o script de treinamento primeiro para gerar os artefatos de IA localmente. O comando abaixo usa a raiz do projeto como módulo:
 
-As principais bibliotecas previstas para o projeto são:
+```powershell
+python -m src.training
 
-```text
-pandas
-numpy
-scikit-learn
-scipy
-matplotlib
-seaborn
-plotly
-streamlit
-joblib
-jupyter
-ipykernel
-kaggle
-datasets
-pyarrow
-python-dotenv
-tqdm
 ```
 
-## Papel de Cada Biblioteca
+*(Aguarde o processo finalizar. Os arquivos `.pkl` ou `.joblib` aparecerão na pasta `models/`)*
 
-### Manipulação e análise de dados
+**4. Executar a Aplicação:**
+Com o modelo treinado, inicie o servidor da interface gráfica:
 
-* `pandas`: leitura, tratamento e manipulação dos datasets.
-* `numpy`: operações numéricas e vetoriais.
-* `scipy`: suporte a cálculos científicos e métricas auxiliares.
-
-### Machine Learning
-
-* `scikit-learn`: criação de modelos de classificação, vetorização com TF-IDF, similaridade por cosseno, divisão treino/teste e métricas.
-* `joblib`: salvamento e carregamento de modelos treinados.
-
-### Visualização de dados
-
-* `matplotlib`: gráficos básicos para EDA.
-* `seaborn`: gráficos estatísticos para análise exploratória.
-* `plotly`: gráficos interativos, especialmente úteis na aplicação.
-
-### Interface
-
-* `streamlit`: criação da aplicação web interativa.
-
-### Notebooks e experimentação
-
-* `jupyter`: criação e execução de notebooks.
-* `ipykernel`: integração do ambiente virtual com notebooks.
-
-### Download e leitura de datasets
-
-* `kaggle`: download dos datasets hospedados no Kaggle.
-* `datasets`: carregamento de datasets do Hugging Face.
-* `pyarrow`: leitura e escrita de arquivos `.parquet`.
-
-### Organização e utilidades
-
-* `python-dotenv`: gerenciamento de variáveis de ambiente.
-* `tqdm`: barras de progresso em processamentos maiores.
-
-## Pipeline Inicial do Projeto
-
-A primeira versão do projeto será construída em etapas:
-
-1. Baixar e organizar os datasets.
-2. Realizar análise exploratória dos dados.
-3. Tratar textos de currículos e vagas.
-4. Criar vetores usando TF-IDF.
-5. Treinar um modelo baseline de classificação Fit/No Fit.
-6. Avaliar o modelo usando métricas de classificação.
-7. Criar ranking de vagas por similaridade.
-8. Identificar skills compatíveis e faltantes.
-9. Criar interface em Streamlit.
-10. Documentar resultados e conclusões.
-
-## Modelos Previstos
-
-Para classificação Fit/No Fit:
-
-* Logistic Regression;
-* Random Forest Classifier;
-* Linear SVM.
-
-Para ranking de vagas:
-
-* TF-IDF;
-* similaridade por cosseno.
-
-Para estimativa salarial, caso existam dados suficientes:
-
-* Random Forest Regressor;
-* Gradient Boosting Regressor.
-
-## Métricas Previstas
-
-Para classificação:
-
-* acurácia;
-* precisão;
-* recall;
-* F1-score;
-* matriz de confusão.
-
-Para regressão salarial:
-
-* MAE;
-* RMSE;
-* R².
-
-Para recomendação:
-
-* análise qualitativa do ranking;
-* comparação entre score de similaridade e aderência esperada;
-* avaliação das Top-5 vagas retornadas.
-
-## Como rodar o projeto
-
-Após instalar as dependências e baixar os datasets, execute a aplicação com:
-
-```bash
+```powershell
 streamlit run app/streamlit_app.py
+
 ```
 
-## Observação
+O JobMatch AI abrirá automaticamente no seu navegador padrão!
 
-Este projeto está em desenvolvimento e será construído de forma incremental. A primeira versão terá foco em classificação Fit/No Fit usando NLP com TF-IDF. Em seguida, serão adicionadas as funcionalidades de ranking de vagas, análise de skills e interface final.
+---
+
+## 🛠️ Tecnologias e Bibliotecas Empregadas
+
+* **Manipulação e Análise de Dados:** `pandas` (leitura e tratamento), `numpy` (operações numéricas) e `scipy` (cálculos científicos).
+* **Machine Learning & NLP:** `scikit-learn` (classificação, vetorização TF-IDF, similaridade por cosseno) e `joblib` (salvamento de modelos).
+* **Visualização:** `matplotlib`, `seaborn` e `plotly`.
+* **Interface Gráfica:** `streamlit`.
+* **Controle de Versão:** Git & GitHub.
+
+---
+
+## 🤖 Modelos e Métricas
+
+* **Para classificação Fit/No Fit:** Algoritmos testados incluem Logistic Regression, Random Forest Classifier e Linear SVM. Avaliação baseada em Acurácia, Precisão, Recall, F1-score e Matriz de Confusão.
+* **Para ranking de vagas:** TF-IDF com Similaridade por Cosseno, avaliados mediante análise qualitativa das Top-5 recomendações.
